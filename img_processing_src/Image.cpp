@@ -2,7 +2,8 @@
 
 void Image::load(std::string file_name) {
     original_image.read(file_name);
-    processed_image = original_image;
+    third_changed_image = original_image;
+    processed_image = third_changed_image;
 }
 
 void Image::resize(size_t width, size_t height) {
@@ -37,7 +38,7 @@ Magick::Image& Image::getProcessedImage() {
 
     new_geometry.aspect(true);
 
-    processed_image = original_image;
+    processed_image = third_changed_image;
     processed_image.resize(new_geometry);
 
     if (std::fmod(rotation_degrees, 90) != 0.0) {
@@ -48,7 +49,6 @@ Magick::Image& Image::getProcessedImage() {
     double theta = rotation_degrees * M_PI / 180.0;
     double arguments[] = {cos(theta), -sin(theta), sin(theta), cos(theta), 0, 0};
     processed_image.distort(MagickCore::AffineProjectionDistortion, 6, arguments, true);
-
 
     processed_image.write("output.png");
     return processed_image;

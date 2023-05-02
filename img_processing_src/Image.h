@@ -8,6 +8,7 @@
 class Image {
 private:
     Magick::Image original_image;
+    Magick::Image third_changed_image;
     Magick::Image processed_image;
 
     size_t new_width;
