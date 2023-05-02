@@ -103,10 +103,12 @@ void on_resize_button_clicked() {
             raw_image.columns()*3
         );
 
+    // pBuff->add_alpha(true, 0xff, 0xff, 0xff);
+
     image_widget->clear();
     image_widget->set(pBuff);
 
-    delete[] buffer;
+    // delete[] buffer;
 }
 
 void on_rotate_scale_value_changed() {
@@ -134,7 +136,7 @@ void on_rotate_scale_value_changed() {
             raw_image.rows(),
             raw_image.columns()*3
         );
-
+    // pixbuf->add_alpha(true, 0xff, 0xff, 0xff);
 
     Gtk::Image *image_widget;
 
@@ -148,5 +150,6 @@ void on_rotate_scale_value_changed() {
     image_widget->clear();
     image_widget->set(pixbuf);
 
-    delete[] buffer;
+
+    // delete[] buffer;
 }

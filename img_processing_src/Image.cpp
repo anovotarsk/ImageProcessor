@@ -1,8 +1,5 @@
 #include "Image.h"
 
-Image::Image() {
-}
-
 void Image::load(std::string file_name) {
     original_image.read(file_name);
     processed_image = original_image;
@@ -43,8 +40,15 @@ Magick::Image& Image::getProcessedImage() {
     processed_image = original_image;
     processed_image.resize(new_geometry);
 
-    // rotation
-    processed_image.rotate(rotation_degrees);
+    if (std::fmod(rotation_degrees, 90) != 0.0) {
+        processed_image.borderColor("transparent");
+        processed_image.border(Magick::Geometry(1, 1));
+    }
+
+    double theta = rotation_degrees * M_PI / 180.0;
+    double arguments[] = {cos(theta), -sin(theta), sin(theta), cos(theta), 0, 0};
+    processed_image.distort(MagickCore::AffineProjectionDistortion, 6, arguments, true);
+
 
     processed_image.write("output.png");
     return processed_image;
@@ -53,3 +57,4 @@ Magick::Image& Image::getProcessedImage() {
 bool Image::isValid() {
     return original_image.isValid();
 }
+

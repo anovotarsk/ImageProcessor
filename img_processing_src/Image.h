@@ -2,11 +2,11 @@
 
 #include <Magick++.h>
 #include <iostream>
-// #include <gdkmm.h>
+#include <string>
+#include <cmath>
 
 class Image {
 private:
-    // Magick::Image image;
     Magick::Image original_image;
     Magick::Image processed_image;
 
@@ -15,7 +15,7 @@ private:
     double rotation_degrees = 0;
 
 public:
-    Image();
+    Image() = default;
 
     void load(std::string file_name);
     void rotate(double degrees);
