@@ -67,6 +67,7 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">Rotate</property>
+            <property name="xalign">0</property>
           </object>
           <packing>
             <property name="x">10</property>
@@ -95,6 +96,7 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">Width</property>
+            <property name="xalign">0</property>
           </object>
           <packing>
             <property name="x">10</property>
@@ -123,6 +125,7 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">Height</property>
+            <property name="xalign">0</property>
           </object>
           <packing>
             <property name="x">110</property>
@@ -178,6 +181,7 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">Watermark</property>
+            <property name="xalign">0</property>
           </object>
           <packing>
             <property name="x">10</property>
@@ -216,6 +220,7 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">Text</property>
+            <property name="xalign">0</property>
           </object>
           <packing>
             <property name="x">10</property>
@@ -241,6 +246,7 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">Font size</property>
+            <property name="xalign">0</property>
           </object>
           <packing>
             <property name="x">10</property>
@@ -295,6 +301,7 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">Rotate</property>
+            <property name="xalign">2.2351741291171123e-10</property>
           </object>
           <packing>
             <property name="x">10</property>
@@ -314,6 +321,61 @@
           <packing>
             <property name="x">10</property>
             <property name="y">390</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="width-request">60</property>
+            <property name="height-request">40</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">X location</property>
+          </object>
+          <packing>
+            <property name="x">10</property>
+            <property name="y">430</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="watermark_x_entry">
+            <property name="width-request">10</property>
+            <property name="height-request">10</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="max-length">4</property>
+            <property name="width-chars">4</property>
+          </object>
+          <packing>
+            <property name="x">70</property>
+            <property name="y">430</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="width-request">60</property>
+            <property name="height-request">40</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">Y location</property>
+            <property name="xalign">0</property>
+          </object>
+          <packing>
+            <property name="x">120</property>
+            <property name="y">430</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="watermark_y_entry">
+            <property name="width-request">10</property>
+            <property name="height-request">10</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="max-length">4</property>
+            <property name="width-chars">4</property>
+          </object>
+          <packing>
+            <property name="x">180</property>
+            <property name="y">430</property>
           </packing>
         </child>
       </object>

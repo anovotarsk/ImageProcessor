@@ -26,7 +26,7 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 # Adding executable file and setting directory for it
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../)
-add_executable(${PROJECT_NAME} main.cpp img_processing_src/Image.cpp gui_src/GUI.cpp)
+add_executable(${PROJECT_NAME} main.cpp img_processing_src/Image.cpp img_processing_src/Watermark.cpp gui_src/GUI.cpp )
 
 
 # adding headers files directories, libraries linking and compilator options

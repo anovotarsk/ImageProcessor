@@ -15,6 +15,8 @@ private:
     size_t new_height;
     double rotation_degrees = 0;
 
+    bool need_to_reprocess = false;
+
 public:
     Image() = default;
 
@@ -23,6 +25,10 @@ public:
     void resize(size_t width, size_t height);
     void save(std::string file_name);
     bool isValid();
+    void clearThirdChangedImage();
 
+    void reprocessForce();
+
+    Magick::Image& getThirdChangedImage();
     Magick::Image& getProcessedImage();
 };
