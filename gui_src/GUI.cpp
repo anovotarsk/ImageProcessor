@@ -5,7 +5,6 @@ std::shared_ptr<Image> image;
 
 void init_builder(std::string ui_file) {
     image = std::make_shared<Image>();
-    image->load("input.png");
 
     builder = Gtk::Builder::create();
 
@@ -27,6 +26,8 @@ void init_builder(std::string ui_file) {
 }
 
 void connect_all() {
+    Gtk::Button *open_button;
+    Gtk::Button *save_button;
     Gtk::Entry *width_entry;
     Gtk::Entry *height_entry;
     Gtk::Button *resize_button;
@@ -39,6 +40,8 @@ void connect_all() {
     Gtk::Entry *x_location_entry;
     Gtk::Entry *y_location_entry;
 
+    builder->get_widget(OPEN_BUTTON_ID, open_button);
+    builder->get_widget(SAVE_BUTTON_ID, save_button);
     builder->get_widget(IMG_WIDTH_ENTRY_ID, width_entry);
     builder->get_widget(IMG_HEIGHT_ENTRY_ID, height_entry);
     builder->get_widget(IMG_RESIZE_BUTTON_ID, resize_button);
@@ -51,7 +54,9 @@ void connect_all() {
     builder->get_widget(WTRMARK_X_ENTRY_ID, x_location_entry);
     builder->get_widget(WTRMARK_Y_ENTRY_ID, y_location_entry);
 
-    if (!width_entry ||
+    if (!open_button ||
+        !save_button ||
+        !width_entry ||
         !height_entry ||
         !resize_button ||
         !rotate_scale ||
@@ -66,6 +71,9 @@ void connect_all() {
         std::cerr << "Builder::connect_all: Builder could not get widgets from UI file" << std::endl;
         exit(0);
     }
+
+    open_button->signal_clicked().connect(sigc::ptr_fun(&on_open_button_clicked));
+    save_button->signal_clicked().connect(sigc::ptr_fun(&on_save_button_clicked));
     width_entry->signal_changed().connect(
             sigc::bind(sigc::ptr_fun(&on_text_entry_for_resize_changed), width_entry));
     height_entry->signal_changed().connect(
@@ -85,7 +93,10 @@ void connect_all() {
 }
 
 void update_image_widget() {
-    image->clearThirdChangedImage();
+    if (!image->isValid()) {
+        return;
+    }
+
     set_watermark_to_image();
 
     Gtk::Image *image_widget;
@@ -168,7 +179,6 @@ static void on_rotate_scale_value_changed() {
     }
 
     image->rotate(rotate_scale->get_value());
-
     update_image_widget();
 }
 
@@ -207,6 +217,127 @@ static void on_x_y_font_entries_changed(Gtk::Entry* entry) {
 
     entry->set_text(text);
     update_image_widget();
+}
+
+
+static Glib::RefPtr<Gtk::FileFilter> create_image_file_filter_filter() {
+    auto filter = Gtk::FileFilter::create();
+
+    filter->add_pattern("*.png");
+    filter->add_pattern("*.jpg");
+    filter->add_pattern("*.jpeg");
+    filter->add_pattern("*.gif");
+    filter->add_pattern("*.tiff");
+    filter->add_pattern("*.BMP");
+    filter->set_name("Images");
+
+    return filter;
+}
+
+bool is_image_file(const std::string& file_path) {
+    std::list<std::string> patterns = {"\\.png$", "\\.jpg$", "\\.jpeg$", "\\.gif$", "\\.tiff$", "\\.BMP$"};
+
+    for (auto it = patterns.begin(); it != patterns.end(); it++) {
+        std::regex pattern(*it, std::regex_constants::icase);
+
+        if (std::regex_search(file_path, pattern))
+            return true;
+    }
+
+  return false;
+}
+
+static void view_message(std::string message) {
+    Gtk::Window* window;
+    builder->get_widget(MAIN_WINDOW_ID, window);
+    if (!window) {
+        std::cerr << "Error: Could not get window widget from UI file" << std::endl;
+        exit(0);
+    }
+
+    Gtk::MessageDialog dialog(*window, message, false);
+
+    dialog.run();
+}
+
+static void on_open_button_clicked() {
+    Gtk::FileChooserDialog dialog("Select image", Gtk::FILE_CHOOSER_ACTION_OPEN);
+    Gtk::Window* window;
+
+    builder->get_widget(MAIN_WINDOW_ID, window);
+
+    if (!window) {
+        std::cerr << "Error: Could not get window widget from UI file" << std::endl;
+        exit(0);
+    }
+    
+    auto filter = create_image_file_filter_filter();
+    dialog.add_filter(filter);
+
+    dialog.set_current_folder(Glib::get_home_dir());
+    dialog.set_select_multiple(false);
+    dialog.set_modal(true);
+    dialog.set_transient_for(*window);
+    dialog.add_button("Open", Gtk::RESPONSE_OK);
+    dialog.add_button("Cancel", Gtk::RESPONSE_CANCEL);
+
+    int result = dialog.run();
+    if (result != Gtk::RESPONSE_OK) 
+        return;
+    
+    std::string filename = dialog.get_filename();
+
+    try {
+        image->load(filename);
+    }
+    catch (std::exception &e) {
+        view_message(e.what());
+        return;
+    }
+
+    update_image_widget();
+}
+
+static void on_save_button_clicked() {
+    if (!image->isValid()) {
+        view_message("You need to open file first");
+        return;
+    }
+
+    Gtk::FileChooserDialog dialog("Save image", Gtk::FILE_CHOOSER_ACTION_SAVE);
+    Gtk::Window* window;
+
+    builder->get_widget(MAIN_WINDOW_ID, window);
+    if (!window) {
+        std::cerr << "Error: Could not get window widget from UI file" << std::endl;
+        exit(0);
+    }
+    
+    auto filter = create_image_file_filter_filter();
+    dialog.add_filter(filter);
+    dialog.set_current_folder(Glib::get_home_dir());
+    dialog.set_select_multiple(false);
+    dialog.set_modal(true);
+    dialog.set_transient_for(*window);
+    dialog.add_button("Save", Gtk::RESPONSE_OK);
+    dialog.add_button("Cancel", Gtk::RESPONSE_CANCEL);
+
+    int result = dialog.run();
+    if (result != Gtk::RESPONSE_OK)
+        return;
+
+    std::string filename = dialog.get_filename();
+    if ( !is_image_file(filename) ) {
+        view_message("invalid file type");
+        return;
+    }
+    try {
+        image->save(filename);
+    }
+    catch (std::exception &e) {
+        view_message(e.what());
+        return;
+    }
 }
 
 static void set_watermark_to_image() {
@@ -264,7 +395,6 @@ static void set_watermark_to_image() {
         y_location = std::stoi(y_location_entry->get_text().c_str());
 
     Watermark watermark(text, font_size, rotation, color, x_location, y_location);
-    // watermark.addWatermark(image->getThirdChangedImage());
     image->reprocessForce();
     watermark.addWatermark(image->getProcessedImage());
 }

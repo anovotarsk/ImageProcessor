@@ -3,10 +3,15 @@
 #include <gtkmm.h>
 #include <string>
 #include <iostream>
+#include <regex>
 #include "../img_processing_src/Image.h"
 #include "../img_processing_src/Watermark.h"
 
 #define UI_FILE_LOCATION        "ui.glade"
+
+#define MAIN_WINDOW_ID          "main_window"
+#define OPEN_BUTTON_ID          "open_button"
+#define SAVE_BUTTON_ID          "save_button"
 
 #define IMAGE_WIDGET_ID         "image"
 #define IMG_ROTATE_SCALE_ID     "img_rotate_scale"
@@ -24,18 +29,17 @@
 extern Glib::RefPtr<Gtk::Builder> builder;
 extern std::shared_ptr<Image> image;
 
-
 void init_builder(std::string ui_file);
 void connect_all();
 void update_image_widget();
 static void set_watermark_to_image();
+static void view_message(std::string message);
 
+static void on_open_button_clicked();
+static void on_save_button_clicked();
 static void on_text_entry_for_resize_changed(Gtk::Entry* entry);
 static void on_resize_button_clicked();
 static void on_rotate_scale_value_changed();
 static void on_watermark_switch_state_changed(bool state);
 static void on_x_y_font_entries_changed(Gtk::Entry* entry);
 static void just_update_callback();
-
-
-

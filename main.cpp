@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
 
     // Get the window object from the UI file
     Gtk::Window* window;
-    builder->get_widget("main_window", window);
+    builder->get_widget(MAIN_WINDOW_ID, window);
     if (!window) {
         std::cerr << "Error: Could not get window widget from UI file" << std::endl;
         return 1;
