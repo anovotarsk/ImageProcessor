@@ -1,7 +1,10 @@
 #include "GUI.h"
 
+
+// global variables definition
 Glib::RefPtr<Gtk::Builder> builder;
 std::shared_ptr<Image> image;
+
 
 void init_builder(std::string ui_file) {
     image = std::make_shared<Image>();
@@ -10,7 +13,7 @@ void init_builder(std::string ui_file) {
 
     try {
         // Load the UI file
-        builder->add_from_file(UI_FILE_LOCATION);
+        builder->add_from_file(ui_file);
     } catch (const Glib::FileError& ex) {
         std::cerr << "FileError: " << ex.what() << std::endl;
         exit(0);
@@ -22,6 +25,7 @@ void init_builder(std::string ui_file) {
         exit(0);
     }
 
+    // connect all signal handlers to their respective widgets
     connect_all();
 }
 
@@ -40,6 +44,7 @@ void connect_all() {
     Gtk::Entry *x_location_entry;
     Gtk::Entry *y_location_entry;
 
+    // get widgets from builder
     builder->get_widget(OPEN_BUTTON_ID, open_button);
     builder->get_widget(SAVE_BUTTON_ID, save_button);
     builder->get_widget(IMG_WIDTH_ENTRY_ID, width_entry);
@@ -54,6 +59,7 @@ void connect_all() {
     builder->get_widget(WTRMARK_X_ENTRY_ID, x_location_entry);
     builder->get_widget(WTRMARK_Y_ENTRY_ID, y_location_entry);
 
+    // check if every widget valid
     if (!open_button ||
         !save_button ||
         !width_entry ||
@@ -72,6 +78,7 @@ void connect_all() {
         exit(0);
     }
 
+    // connect signal handlers
     open_button->signal_clicked().connect(sigc::ptr_fun(&on_open_button_clicked));
     save_button->signal_clicked().connect(sigc::ptr_fun(&on_save_button_clicked));
     width_entry->signal_changed().connect(
@@ -92,31 +99,34 @@ void connect_all() {
             sigc::bind(sigc::ptr_fun(&on_x_y_font_entries_changed), y_location_entry));
 }
 
+
 void update_image_widget() {
+    // do nothing if image is invalid
     if (!image->isValid()) {
         return;
     }
 
+    // update watermark on image
     set_watermark_to_image();
+
 
     Gtk::Image *image_widget;
     guint8 * buffer;
     size_t buffer_size;
     Glib::RefPtr<Gdk::Pixbuf> pixbuf;
-
     Magick::Image& raw_image(image->getProcessedImage());
 
+    // get image widget from builder
     builder->get_widget(IMAGE_WIDGET_ID, image_widget);
-
     if (!image_widget) {
         std::cerr << "update_image_widget()    Error: Could not get widgets from UI file" << std::endl;
         exit(0);
     }
 
+    // converting Magick::Image to Gtk::Pixbuf
     buffer_size = raw_image.columns() * raw_image.rows() * 3;
     buffer = new guint8[buffer_size];
     raw_image.write(0, 0, raw_image.columns(), raw_image.rows(), "RGB", Magick::CharPixel, buffer);
-
     pixbuf = Gdk::Pixbuf::create_from_data(
             buffer,
             Gdk::COLORSPACE_RGB,
@@ -127,6 +137,7 @@ void update_image_widget() {
             raw_image.columns()*3
         );
 
+    // set image to image widget
     image_widget->clear();
     image_widget->set(pixbuf);
 }
@@ -134,6 +145,7 @@ void update_image_widget() {
 static void on_text_entry_for_resize_changed(Gtk::Entry* entry) {
     std::string text = entry->get_text();
 
+    // delete all non-digit chars
     for (auto it = text.begin(); it != text.end(); ) {
         if (!std::isdigit(*it))
             it = text.erase(it);
@@ -148,37 +160,43 @@ static void on_resize_button_clicked() {
     Gtk::Entry *width_entry;
     Gtk::Entry *height_entry;
 
+    // get widgets from builder
     builder->get_widget(IMG_WIDTH_ENTRY_ID, width_entry);
     builder->get_widget(IMG_HEIGHT_ENTRY_ID, height_entry);
-
     if (!width_entry || !height_entry) {
         std::cerr << "on_resize_button_clicked()    Error: Could not get widgets from UI file" << std::endl;
         exit(0);
     }
 
+    // do nothing if width_entry or height_entry are empty
     if (width_entry->get_text().length() == 0 || height_entry->get_text().length() == 0) {
         return;
     }
 
+    // resize image
     size_t new_width = std::stoi(width_entry->get_text().c_str());
     size_t new_height = std::stoi(height_entry->get_text().c_str());
 
     image->resize(new_width, new_height);
 
+    // update image on image widget
     update_image_widget();
 }
 
 static void on_rotate_scale_value_changed() {
     Gtk::Scale *rotate_scale;
     
+    // get widgets from builder
     builder->get_widget(IMG_ROTATE_SCALE_ID, rotate_scale);
-
     if (!rotate_scale) {
         std::cerr << "on_rotate_scale_value_changed()    Error: Could not get widgets from UI file" << std::endl;
         exit(0);
     }
 
+    // rotate image
     image->rotate(rotate_scale->get_value());
+
+    // update image on image widget
     update_image_widget();
 }
 
@@ -186,21 +204,24 @@ static void on_watermark_switch_state_changed(bool state) {
     static bool last_widget_state = false;
     Gtk::Switch *watermark_switch;
 
+    // get widgets from builder
     builder->get_widget(WTRMARK_SWITCH_ID, watermark_switch);
     if (!watermark_switch) {
         std::cerr << "on_watermark_switch_state_changed()    Error: Could not get widgets from UI file" << std::endl;
         exit(0);
     }
 
+    // do nothing if switch state has not been changed
     if (last_widget_state == watermark_switch->get_state())
         return;
     last_widget_state = watermark_switch->get_state();
 
+    // update image on image widget (adding the watermark)
     update_image_widget();
-
 }
 
 static void just_update_callback() {
+    // just update image on image widget
     update_image_widget();
 }
 
@@ -208,6 +229,7 @@ static void on_x_y_font_entries_changed(Gtk::Entry* entry) {
     std::string text = entry->get_text();
     std::string text_befor_modify = text;
 
+    // delete all non-digit chars
     for (auto it = text.begin(); it != text.end(); ) {
         if (!std::isdigit(*it))
             it = text.erase(it);
@@ -216,6 +238,8 @@ static void on_x_y_font_entries_changed(Gtk::Entry* entry) {
     }
 
     entry->set_text(text);
+
+    // update image on image widget (update watermark)
     update_image_widget();
 }
 
@@ -223,6 +247,7 @@ static void on_x_y_font_entries_changed(Gtk::Entry* entry) {
 static Glib::RefPtr<Gtk::FileFilter> create_image_file_filter_filter() {
     auto filter = Gtk::FileFilter::create();
 
+    // setting image patterns to file filter
     filter->add_pattern("*.png");
     filter->add_pattern("*.jpg");
     filter->add_pattern("*.jpeg");
@@ -237,6 +262,7 @@ static Glib::RefPtr<Gtk::FileFilter> create_image_file_filter_filter() {
 bool is_image_file(const std::string& file_path) {
     std::list<std::string> patterns = {"\\.png$", "\\.jpg$", "\\.jpeg$", "\\.gif$", "\\.tiff$", "\\.BMP$"};
 
+    // check is file image
     for (auto it = patterns.begin(); it != patterns.end(); it++) {
         std::regex pattern(*it, std::regex_constants::icase);
 
@@ -249,6 +275,8 @@ bool is_image_file(const std::string& file_path) {
 
 static void view_message(std::string message) {
     Gtk::Window* window;
+
+     // get main window from builder
     builder->get_widget(MAIN_WINDOW_ID, window);
     if (!window) {
         std::cerr << "Error: Could not get window widget from UI file" << std::endl;
@@ -256,7 +284,6 @@ static void view_message(std::string message) {
     }
 
     Gtk::MessageDialog dialog(*window, message, false);
-
     dialog.run();
 }
 
@@ -264,16 +291,16 @@ static void on_open_button_clicked() {
     Gtk::FileChooserDialog dialog("Select image", Gtk::FILE_CHOOSER_ACTION_OPEN);
     Gtk::Window* window;
 
+     // get main window from builder
     builder->get_widget(MAIN_WINDOW_ID, window);
-
     if (!window) {
         std::cerr << "Error: Could not get window widget from UI file" << std::endl;
         exit(0);
     }
     
+    // configuring FileChooserDialog
     auto filter = create_image_file_filter_filter();
     dialog.add_filter(filter);
-
     dialog.set_current_folder(Glib::get_home_dir());
     dialog.set_select_multiple(false);
     dialog.set_modal(true);
@@ -281,12 +308,13 @@ static void on_open_button_clicked() {
     dialog.add_button("Open", Gtk::RESPONSE_OK);
     dialog.add_button("Cancel", Gtk::RESPONSE_CANCEL);
 
+    // exec file dialog
     int result = dialog.run();
     if (result != Gtk::RESPONSE_OK) 
         return;
     
+    // reading image from file
     std::string filename = dialog.get_filename();
-
     try {
         image->load(filename);
     }
@@ -295,6 +323,7 @@ static void on_open_button_clicked() {
         return;
     }
 
+    // update image on image widget
     update_image_widget();
 }
 
@@ -307,12 +336,14 @@ static void on_save_button_clicked() {
     Gtk::FileChooserDialog dialog("Save image", Gtk::FILE_CHOOSER_ACTION_SAVE);
     Gtk::Window* window;
 
+    // get main window from builder
     builder->get_widget(MAIN_WINDOW_ID, window);
     if (!window) {
         std::cerr << "Error: Could not get window widget from UI file" << std::endl;
         exit(0);
     }
     
+    // configuring FileChooserDialog
     auto filter = create_image_file_filter_filter();
     dialog.add_filter(filter);
     dialog.set_current_folder(Glib::get_home_dir());
@@ -322,15 +353,21 @@ static void on_save_button_clicked() {
     dialog.add_button("Save", Gtk::RESPONSE_OK);
     dialog.add_button("Cancel", Gtk::RESPONSE_CANCEL);
 
+    // exec file dialog
     int result = dialog.run();
     if (result != Gtk::RESPONSE_OK)
         return;
 
+
     std::string filename = dialog.get_filename();
+
+    // check is file realy image
     if ( !is_image_file(filename) ) {
         view_message("invalid file type");
         return;
     }
+
+    // writing image to file
     try {
         image->save(filename);
     }
@@ -349,6 +386,7 @@ static void set_watermark_to_image() {
     Gtk::Entry *x_location_entry;
     Gtk::Entry *y_location_entry;
 
+    // get widgets from builder
     builder->get_widget(WTRMARK_SWITCH_ID, watermark_switch);
     builder->get_widget(WTRMARK_ENTRY_ID, watermark_text);
     builder->get_widget(WTRMARK_FONT_SIZE_ID, font_size_entry);
@@ -357,6 +395,7 @@ static void set_watermark_to_image() {
     builder->get_widget(WTRMARK_X_ENTRY_ID, x_location_entry);
     builder->get_widget(WTRMARK_Y_ENTRY_ID, y_location_entry);
 
+    // check if every widget valid
     if (!watermark_switch   ||
         !watermark_text     ||
         !font_size_entry    || 
@@ -369,16 +408,19 @@ static void set_watermark_to_image() {
         exit(0);
     }
 
+    // do nothing if watermark is disabled
     if (!watermark_switch->get_state())
         return;
 
+    // init watermark fields with default values
     std::string text = "Watermark";
-    size_t font_size = 10;
+    size_t font_size = 30;
     std::string color;
     double rotation;
     size_t x_location = 0;
     size_t y_location = 0;
 
+    // read watermark fields values from widgets
     if (watermark_text->get_text().size() != 0)
         text = watermark_text->get_text().c_str();
     
@@ -394,7 +436,12 @@ static void set_watermark_to_image() {
     if (y_location_entry->get_text().size() != 0)
         y_location = std::stoi(y_location_entry->get_text().c_str());
 
+    // create watermark
     Watermark watermark(text, font_size, rotation, color, x_location, y_location);
+
+    // set force reprocess to clear last watermark
     image->reprocessForce();
+
+    // add watermark to image
     watermark.addWatermark(image->getProcessedImage());
 }

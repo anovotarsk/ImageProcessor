@@ -14,9 +14,10 @@ private:
     size_t y_location;
 
 public:
-    Watermark(std::string &text_, size_t font_size_,
-              double rotation_degrees_, std::string color,
-              size_t x, size_t y);
-              
-    void addWatermark(Magick::Image &image);
+    // Constructor that initializes all the watermark properties
+    Watermark(std::string& text_, size_t font_size_, double rotation_degrees_,
+              std::string color_, size_t x, size_t y);
+
+    // Method that adds the watermark to an image
+    void addWatermark(Magick::Image& image);
 };
